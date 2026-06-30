@@ -1,0 +1,128 @@
+package com.marvelpedia.ui.trivia
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import com.marvelpedia.R
+import com.marvelpedia.data.Difficulty
+import com.marvelpedia.data.TriviaQuestion
+import com.marvelpedia.data.TriviaRepository
+
+class TriviaActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_DIFFICULTY = "extra_difficulty"
+        const val EXTRA_SCORE = "extra_score"
+        const val EXTRA_TOTAL = "extra_total"
+        private const val QUESTIONS_PER_QUIZ = 10
+    }
+
+    private lateinit var difficulty: Difficulty
+    private lateinit var questions: List<TriviaQuestion>
+    private var currentIndex = 0
+    private var score = 0
+    private var answered = false
+
+    // Each question's options are shuffled once and cached for the current question
+    private var currentShuffledOptions: List<String> = emptyList()
+    private var currentCorrectAnswer: String = ""
+
+    private lateinit var questionCounter: TextView
+    private lateinit var questionText: TextView
+    private lateinit var explanationText: TextView
+    private lateinit var optionsContainer: LinearLayout
+    private lateinit var btnNext: Button
+    private lateinit var progressBar: ProgressBar
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_trivia)
+
+        val difficultyName = intent.getStringExtra(EXTRA_DIFFICULTY) ?: Difficulty.EASY.name
+        difficulty = Difficulty.valueOf(difficultyName)
+        questions = TriviaRepository.getRandomSet(difficulty, QUESTIONS_PER_QUIZ)
+
+        questionCounter = findViewById(R.id.question_counter)
+        questionText = findViewById(R.id.question_text)
+        explanationText = findViewById(R.id.explanation_text)
+        optionsContainer = findViewById(R.id.options_container)
+        btnNext = findViewById(R.id.btn_next)
+        progressBar = findViewById(R.id.quiz_progress)
+
+        btnNext.setOnClickListener {
+            if (currentIndex < questions.size - 1) {
+                currentIndex++
+                renderQuestion()
+            } else {
+                finishQuiz()
+            }
+        }
+
+        renderQuestion()
+    }
+
+    private fun renderQuestion() {
+        answered = false
+        btnNext.isEnabled = false
+        btnNext.text = if (currentIndex == questions.size - 1) getString(R.string.finish) else getString(R.string.next)
+        explanationText.visibility = android.view.View.GONE
+
+        val q = questions[currentIndex]
+        questionCounter.text = getString(R.string.question_counter, currentIndex + 1, questions.size)
+        progressBar.progress = ((currentIndex + 1) * 100) / questions.size
+        questionText.text = q.question
+
+        currentCorrectAnswer = q.options[0]
+        currentShuffledOptions = q.options.shuffled()
+
+        optionsContainer.removeAllViews()
+        val inflater = LayoutInflater.from(this)
+
+        for (option in currentShuffledOptions) {
+            val button = inflater.inflate(R.layout.item_option_button, optionsContainer, false) as Button
+            button.text = option
+            button.setOnClickListener { onOptionSelected(button, option, q) }
+            optionsContainer.addView(button)
+        }
+    }
+
+    private fun onOptionSelected(selectedButton: Button, selectedOption: String, q: TriviaQuestion) {
+        if (answered) return
+        answered = true
+        btnNext.isEnabled = true
+
+        val isCorrect = selectedOption == currentCorrectAnswer
+        if (isCorrect) score++
+
+        // Color all buttons: correct = green, wrong-selected = red, rest dimmed
+        for (i in 0 until optionsContainer.childCount) {
+            val btn = optionsContainer.getChildAt(i) as Button
+            btn.isEnabled = false
+            when {
+                btn.text == currentCorrectAnswer ->
+                    btn.backgroundTintList = ContextCompat.getColorStateList(this, R.color.correct_green)
+                btn.text == selectedOption && !isCorrect ->
+                    btn.backgroundTintList = ContextCompat.getColorStateList(this, R.color.incorrect_red)
+                else -> { /* leave dimmed default */ }
+            }
+        }
+
+        explanationText.text = q.explanation
+        explanationText.visibility = android.view.View.VISIBLE
+    }
+
+    private fun finishQuiz() {
+        val resultIntent = Intent(this, TriviaResultActivity::class.java)
+        resultIntent.putExtra(EXTRA_DIFFICULTY, difficulty.name)
+        resultIntent.putExtra(EXTRA_SCORE, score)
+        resultIntent.putExtra(EXTRA_TOTAL, questions.size)
+        startActivity(resultIntent)
+        finish()
+    }
+}

@@ -1,0 +1,58 @@
+package com.marvelpedia.ui.encyclopedia
+
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import com.marvelpedia.R
+import com.marvelpedia.data.CharacterRepository
+
+class CharacterDetailActivity : AppCompatActivity() {
+
+    companion object {
+        const val EXTRA_CHARACTER_ID = "extra_character_id"
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_character_detail)
+
+        val characterId = intent.getIntExtra(EXTRA_CHARACTER_ID, -1)
+        val character = CharacterRepository.getById(characterId) ?: run {
+            finish()
+            return
+        }
+
+        findViewById<android.widget.TextView>(R.id.detail_hero_name).text = character.heroName
+        findViewById<android.widget.TextView>(R.id.detail_real_name).text = character.realName
+        findViewById<android.widget.TextView>(R.id.detail_actor).text =
+            getString(R.string.actor_label) + ": " + character.actor
+        findViewById<android.widget.TextView>(R.id.detail_status).text =
+            getString(R.string.status_label) + ": " + character.status
+        findViewById<android.widget.TextView>(R.id.detail_team).text =
+            getString(R.string.team_label) + ": " + character.team
+        findViewById<android.widget.TextView>(R.id.detail_first_appearance).text =
+            getString(R.string.first_appearance_label) + ": " + character.firstAppearance
+
+        findViewById<android.widget.TextView>(R.id.detail_bio).text = character.bio
+        findViewById<android.widget.TextView>(R.id.detail_powers).text =
+            character.powers.joinToString("\n") { "• $it" }
+        findViewById<android.widget.TextView>(R.id.detail_allies).text =
+            character.allies.joinToString(", ")
+        findViewById<android.widget.TextView>(R.id.detail_enemies).text =
+            character.enemies.joinToString(", ")
+        findViewById<android.widget.TextView>(R.id.detail_appearances).text =
+            character.movieAppearances.joinToString("\n") { "• $it" }
+
+        findViewById<android.widget.TextView>(R.id.detail_quote).text =
+            "\u201c${character.quote}\u201d"
+        findViewById<android.widget.TextView>(R.id.detail_quote_source).text =
+            "— ${character.quoteSource}"
+
+        title = character.heroName
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressedDispatcher.onBackPressed()
+        return true
+    }
+}

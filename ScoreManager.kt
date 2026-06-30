@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MarvelPedia">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.encyclopedia.CharacterDetailActivity"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.trivia.TriviaActivity"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.trivia.TriviaResultActivity"
+            android:parentActivityName=".ui.MainActivity" />
+
+    </application>
+
+</manifest>

@@ -1,0 +1,51 @@
+package com.marvelpedia.ui.encyclopedia
+
+import android.graphics.Color
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
+import com.marvelpedia.R
+import com.marvelpedia.data.Character
+
+class CharacterAdapter(
+    private var items: List<Character>,
+    private val onClick: (Character) -> Unit
+) : RecyclerView.Adapter<CharacterAdapter.ViewHolder>() {
+
+    class ViewHolder(view: android.view.View) : RecyclerView.ViewHolder(view) {
+        val heroName: android.widget.TextView = view.findViewById(R.id.hero_name)
+        val realName: android.widget.TextView = view.findViewById(R.id.real_name)
+        val teamLabel: android.widget.TextView = view.findViewById(R.id.team_label)
+        val statusDot: android.view.View = view.findViewById(R.id.status_dot)
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_character, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val character = items[position]
+        holder.heroName.text = character.heroName
+        holder.realName.text = character.realName
+        holder.teamLabel.text = character.team.uppercase()
+
+        val statusColor = when (character.status) {
+            "Active" -> Color.parseColor("#4CAF50")
+            "Deceased" -> Color.parseColor("#9E9E9E")
+            "Retired" -> Color.parseColor("#FFC107")
+            else -> Color.parseColor("#4CAF50")
+        }
+        holder.statusDot.background.setTint(statusColor)
+
+        holder.itemView.setOnClickListener { onClick(character) }
+    }
+
+    override fun getItemCount(): Int = items.size
+
+    fun updateList(newItems: List<Character>) {
+        items = newItems
+        notifyDataSetChanged()
+    }
+}
