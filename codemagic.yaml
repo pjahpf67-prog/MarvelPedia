@@ -1,0 +1,19 @@
+workflows:
+  android-workflow:
+    name: MarvelPedia Android Build
+    max_build_duration: 60
+    environment:
+      java: 17
+    scripts:
+      - name: Install Gradle
+        script: |
+          wget -q https://services.gradle.org/distributions/gradle-8.4-bin.zip
+          unzip -q gradle-8.4-bin.zip
+          export PATH="$PWD/gradle-8.4/bin:$PATH"
+          gradle wrapper --gradle-version 8.4
+      - name: Build debug APK
+        script: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug
+    artifacts:
+      - app/build/outputs/apk/debug/*.apk
